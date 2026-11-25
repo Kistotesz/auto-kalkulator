@@ -119,7 +119,7 @@ function calc(){
   const best=rows.find(r=>r[1]===min);
   const save=petrol-min;
   document.getElementById("verdict").innerHTML=km>0&&best[0]!=="Benzines"
-    ? `A <b>${best[0].toLowerCase()}</b> évente kb. <b>${ft(save)}</b> forinttal olcsóbb, mint a benzines.`
+    ? `A <b>${best[0].toLowerCase()}</b> évente kb. <b>${ft(save)}-tal</b> olcsóbb, mint a benzines.`
     : km>0 ? `Ezekkel az adatokkal a <b>benzines</b> a legolcsóbb.` : `Írd be az éves futást.`;
 }
 ids.forEach(id=>document.getElementById(id).addEventListener("input",calc));
