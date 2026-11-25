@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Benzin, plug-in vagy villany?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: clean and modern, like a premium car's dashboard screen
+   IDEA: an instrument cluster: a dark display panel showing the live result
+   PICTURE: dark result panel with three glowing lanes, the winner lit in electric blue
+   COLOUR and TYPE: light grey ground, graphite panel #15181d, electric blue #2d7ff9; Outfit for headings and numbers, Inter for text
+   LAYOUT: title, result panel beside the inputs on wide screens, stacked on phones */
+:root{color-scheme:light dark;--bg:light-dark(#f2f4f7,#0b0d10);--panel:light-dark(#ffffff,#15181d);--ink:light-dark(#111418,#eef1f5);--soft:light-dark(#5d6673,#98a2b0);--dash:#15181d;--dash2:#20252d;--accent:#2d7ff9;--line:light-dark(#e3e7ec,#262c35)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px);max-width:1240px;margin:0 auto}
+h1{font:700 clamp(32px,5vw,48px)/1.08 Outfit,sans-serif;margin:0 0 10px;text-wrap:balance;letter-spacing:-.01em}
+.lead{color:var(--soft);margin:0 0 28px;max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.board{background:linear-gradient(160deg,var(--dash2),var(--dash));color:#eef1f5;border-radius:20px;padding:26px;position:sticky;top:16px;box-shadow:0 18px 40px rgba(10,14,20,.22);border:1px solid #2a3039}
+@media(max-width:860px){.board{position:static}}
+.board h2{font:500 14px/1.2 Inter,sans-serif;margin:0 0 18px;color:#98a2b0}
+.lane{margin:0 0 18px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.lane .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lane .name{font-weight:600}
+.lane .cost{font:600 clamp(26px,4vw,34px)/1 Outfit,sans-serif;white-space:nowrap}
+.bar{height:8px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:#6b7584;transition:width .35s}
+.lane.win{border-color:rgba(45,127,249,.55);background:rgba(45,127,249,.08)}
+.lane.win .bar i{background:var(--accent);box-shadow:0 0 12px rgba(45,127,249,.7)}
+.lane.win .cost{color:#7fb0ff}
+.lane .sub{font-size:13px;color:#98a2b0;white-space:nowrap;margin-top:6px}
+.win .name::after{content:" · legolcsóbb";color:#7fb0ff;font-weight:600}
+.verdict{border-top:1px solid rgba(255,255,255,.1);padding-top:16px;font-size:17px}
+.verdict b{color:#7fb0ff}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+form{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px 22px}
+fieldset{border:0;margin:0 0 16px;padding:0}
+legend{font:600 19px/1.2 Outfit,sans-serif;margin-bottom:6px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.row label{font-size:15px}
+.row small{display:block;color:var(--soft);font-size:13px;line-height:1.3}
+.row .in{display:flex;align-items:center;gap:6px}
+input{width:100%;font:500 16px Inter,sans-serif;padding:9px 10px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);text-align:right}
+input:focus{outline:3px solid var(--accent);outline-offset:1px}
+.unit{font-size:13px;color:var(--soft);white-space:nowrap;width:44px}
+.btn{min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:600 15px Inter,sans-serif;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn:focus{outline:3px solid var(--accent)}
+.note{font-size:13px;color:var(--soft);margin-top:22px;max-width:80ch}
+.tag{display:inline-block;font-size:13px;font-weight:600;background:var(--accent);color:#fff;border-radius:999px;padding:4px 12px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="band">
+  <span class="tag">Minta az AutóSámán részére</span>
+  <h1>Benzin, plug-in hibrid vagy villany: neked melyik éri meg?</h1>
+  <p class="lead">Írd be, mennyit autózol és hol töltesz. A kalkulátor kiszámolja, mennyibe kerül egy évnyi üzemanyag vagy áram a három hajtással.</p>
+
+  <div class="grid">
+    <section class="board" aria-live="polite">
+      <h2>Éves energiaköltség</h2>
+      <div id="lanes"></div>
+      <div class="verdict" id="verdict"></div>
+    </section>
+
+    <form id="f" onsubmit="return false">
+      <fieldset>
+        <legend>Te és az autózás</legend>
+        <div class="row"><label for="km">Éves futás</label><div class="in"><input id="km" type="number" min="0" step="500" value="15000"><span class="unit">km</span></div></div>
+        <div class="row"><label for="share">Ennyi utat tudna a plug-in árammal megtenni<small>Rövid, napi utaknál magas.</small></label><div class="in"><input id="share" type="number" min="0" max="100" step="5" value="60"><span class="unit">%</span></div></div>
+        <div class="row"><label for="home">Ennyit töltesz otthon<small>A többi nyilvános töltőn.</small></label><div class="in"><input id="home" type="number" min="0" max="100" step="5" value="80"><span class="unit">%</span></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Autók</legend>
+        <div class="row"><label for="lp">Benzines fogyasztás</label><div class="in"><input id="lp" type="number" min="0" step="0.1" value="6.5"><span class="unit">l/100</span></div></div>
+        <div class="row"><label for="lh">Plug-in fogyasztás hibrid módban</label><div class="in"><input id="lh" type="number" min="0" step="0.1" value="5.5"><span class="unit">l/100</span></div></div>
+        <div class="row"><label for="kh">Plug-in áramfogyasztás</label><div class="in"><input id="kh" type="number" min="0" step="0.5" value="19"><span class="unit">kWh/100</span></div></div>
+        <div class="row"><label for="ke">Villanyautó fogyasztása</label><div class="in"><input id="ke" type="number" min="0" step="0.5" value="17"><span class="unit">kWh/100</span></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Árak</legend>
+        <div class="row"><label for="pp">Benzin ára</label><div class="in"><input id="pp" type="number" min="0" step="1" value="620"><span class="unit">Ft/l</span></div></div>
+        <div class="row"><label for="pr">Otthoni áram, rezsicsökkentett</label><div class="in"><input id="pr" type="number" min="0" step="1" value="36"><span class="unit">Ft/kWh</span></div></div>
+        <div class="row"><label for="pm">Otthoni áram a limit felett<small>Becslés, írd át a saját díjadra.</small></label><div class="in"><input id="pm" type="number" min="0" step="1" value="70"><span class="unit">Ft/kWh</span></div></div>
+        <div class="row"><label for="base">A háztartás többi éves áramfogyasztása</label><div class="in"><input id="base" type="number" min="0" step="100" value="2200"><span class="unit">kWh</span></div></div>
+        <div class="row"><label for="pub">Nyilvános töltés ára<small>Példaérték, szolgáltatónként eltér.</small></label><div class="in"><input id="pub" type="number" min="0" step="5" value="150"><span class="unit">Ft/kWh</span></div></div>
+      </fieldset>
+      <button class="btn" type="button" id="reset">Alapértékek visszaállítása</button>
+    </form>
+  </div>
+
+  <p class="note">Csak az üzemanyag és az áram költségét számolja, a vételárat, a szervizt és a töltési veszteséget nem. A rezsicsökkentett áramár évi 2523 kWh-ig jár a háztartásnak; ami e fölé esik, azt a kalkulátor a limit feletti áron számolja. Alapértékek: benzin kb. 620 Ft/l (2026. novemberi átlagár körül), rezsicsökkentett áram kb. 36 Ft/kWh, átlagos háztartás 2200 kWh/év. A limit feletti és a nyilvános töltési ár csak példa. Minta, készítette: Krisztian.</p>
+</div>
+<script>
+{
+const ids=["km","share","home","lp","lh","kh","ke","pp","pr","pm","base","pub"];
+const defaults={};ids.forEach(id=>defaults[id]=document.getElementById(id).value);
+const v=id=>Math.max(0,parseFloat(document.getElementById(id).value)||0);
+const ft=n=>Math.round(n).toLocaleString("hu-HU")+" Ft";
+function homeCost(kwh,base,limit,pr,pm){const room=Math.max(0,limit-base);const cheap=Math.min(kwh,room);return cheap*pr+(kwh-cheap)*pm;}
+function calc(){
+  const km=v("km"),share=Math.min(100,v("share"))/100,home=Math.min(100,v("home"))/100,limit=2523;
+  const petrol=km/100*v("lp")*v("pp");
+  const evKwh=km/100*v("ke");
+  const ev=homeCost(evKwh*home,v("base"),limit,v("pr"),v("pm"))+evKwh*(1-home)*v("pub");
+  const eKm=km*share,phKwh=eKm/100*v("kh");
+  const phev=(km-eKm)/100*v("lh")*v("pp")+homeCost(phKwh*home,v("base"),limit,v("pr"),v("pm"))+phKwh*(1-home)*v("pub");
+  const rows=[["Benzines",petrol],["Plug-in hibrid",phev],["Villanyautó",ev]];
+  const max=Math.max(...rows.map(r=>r[1]),1),min=Math.min(...rows.map(r=>r[1]));
+  document.getElementById("lanes").innerHTML=rows.map(([n,c])=>{
+    const per=km>0?c/km*100:0;
+    return `<div class="lane${c===min&&km>0?" win":""}"><div class="top"><span class="name">${n}</span><span class="cost">${ft(c)}</span></div><div class="bar"><i style="width:${(c/max*100).toFixed(1)}%"></i></div><div class="sub">havonta ${ft(c/12)} · ${ft(per)} / 100 km</div></div>`;
+  }).join("");
+  const best=rows.find(r=>r[1]===min);
+  const save=petrol-min;
+  document.getElementById("verdict").innerHTML=km>0&&best[0]!=="Benzines"
+    ? `A <b>${best[0].toLowerCase()}</b> évente kb. <b>${ft(save)}</b> forinttal olcsóbb, mint a benzines.`
+    : km>0 ? `Ezekkel az adatokkal a <b>benzines</b> a legolcsóbb.` : `Írd be az éves futást.`;
+}
+ids.forEach(id=>document.getElementById(id).addEventListener("input",calc));
+document.getElementById("reset").addEventListener("click",()=>{ids.forEach(id=>document.getElementById(id).value=defaults[id]);calc();});
+calc();
+}
+</script>
+</body>
+</html>
